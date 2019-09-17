@@ -1,50 +1,50 @@
+const express = require('express');
+const db = require('../database/dbConfig.js');
+const bcrypt = require('bcryptjs');
+const Users = require ('./users-model')
+const restrict = require('./restrict')
 
-const db = require('./database/dbConfig.js');
-const Users = require('./users/users-model.js');
+const router = express.Router();
+
+router.post('/register', (req, res) => {
+  const { username, password } = req.body;
+  Users.add({ username, password: bcrypt.hashSync(password, 8) })
+  .then(id => {
+    res.status(201).json({ message: "User Registered", id })
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({ message: "Error Registering user" })
+  });
+});
 
 
-db.post("/api/register", (req, res) => {
-    const user = req.body;
-    if (!user.username || !user.password) {
-        res.status(404).json({ message: "missing user or pass" });
+router.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  Users
+  .findByUsername(username)
+  .then(user => {
+    if (user && bcrypt.compareSync(password, user.password)) {
+    res.status(200).json({ message: "Successful Login" });
     } else {
-        const hash = bcrypt.hashSync(user.password, 12);
-        user.password = hash;
-        Users.add(user)
-            .then(saved => {
-                res.status(201).json(saved);
-            })
-            .catch(err => {
-                res.status(500).json(err);
-            })
+      res.status(401).json({ message: "Invalid Login" })
     }
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({ message: "Error Logging In" })
+  });
 });
 
-db.get("/api/users", async(req, res) => {
-    try {
-        const getUsers = await Users.get();
-        if (getUsers) {
-            res.status(200).json(getUsers);
-        } else {
-            res.status(400).json({ message: 'cant get users' });
-        }
-    } catch (err) {
-        res.status(500).json({ message: "Error." });
-    }
+router.get('/', restrict, (req, res) => {
+  Users.get()
+  .then(users => {
+    res.json(users);
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({ message: "Error getting Users"});
+  });
 });
-db.post('/api/login', (req, res) => {
-    let { username, password } = req.body;
 
-    Users.login({ username })
-        .first()
-        .then(user => {
-            if (user) {
-                res.status(200).json({ message: `Welcome ${user.username}!` });
-            } else {
-                res.status(401).json({ message: 'Invalid Credentials' });
-            }
-        })
-        .catch(error => {
-            res.status(500).json(error);
-        });
-});
+module.exports = router;

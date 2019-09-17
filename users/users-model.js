@@ -1,13 +1,18 @@
-const db = require('./dbConfig.js')
+const db = require('../database/dbConfig')
 
-module.exports = {
-    add,
-    get,
-    login
-};
 
 const add = user => {
-    return db('users').insert(user)
+    return db('users')
+    .insert(user, 'id')
+    .then(([id]) => id)
+}
+
+function findBy(where) {
+    return db('users').where(where)
+}
+
+function findByUsername(username) {
+    return findBy({ username }).first();
 }
 
 function login(filter) {
@@ -18,3 +23,11 @@ const get = () => {
     return db('users')
 };
 
+
+module.exports = {
+    add,
+    findBy,
+    findByUsername,
+    get,
+    login
+};
