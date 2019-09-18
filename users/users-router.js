@@ -1,8 +1,9 @@
 const express = require('express');
-const db = require('../database/dbConfig.js');
 const bcrypt = require('bcryptjs');
 const Users = require ('./users-model')
 const restrict = require('./restrict')
+//const jwt = require('jsonwebtoken');
+//const secrets = require('../config/secrets')
 
 const router = express.Router();
 
@@ -25,6 +26,8 @@ router.post('/login', (req, res) => {
   .findByUsername(username)
   .then(user => {
     if (user && bcrypt.compareSync(password, user.password)) {
+      //const token = generateToken(user)
+      req.session.user = user;
     res.status(200).json({ message: "Successful Login" });
     } else {
       res.status(401).json({ message: "Invalid Login" })
@@ -46,5 +49,12 @@ router.get('/', restrict, (req, res) => {
     res.status(500).json({ message: "Error getting Users"});
   });
 });
+
+// function generateToken(user) {
+//   const payload = {
+//     expiresIn: '1d'
+//   }
+//   return jwt.sign(payload, secrets.jwtSecret, options)
+// }
 
 module.exports = router;

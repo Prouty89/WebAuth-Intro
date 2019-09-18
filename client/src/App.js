@@ -1,11 +1,18 @@
 import React from 'react';
 import './App.css';
 import Login from './components/login'
+import { Router, NavLink } from 'react-router-dom'
 
 function App() {
   return (
     <div className="App">
-      <Login />
+      <header>
+        <NavLink to ="/">Home</NavLink>
+        <NavLink to ="/">Home</NavLink>
+        <NavLink to ="/">Home</NavLink>
+      </header>
+      <Route path="/login" component={login}></Route>
+     
      
     </div>
   );
